@@ -1,0 +1,12 @@
+version: '3'
+services:
+  chatgpt_automation_api:
+    container_name: chatgpt_automation_api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    restart: always
+    env_file:
+      - .env.prod
