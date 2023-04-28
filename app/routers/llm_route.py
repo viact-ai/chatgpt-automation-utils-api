@@ -1,6 +1,5 @@
 from typing import List, Literal
 
-from db import db_helper
 from fastapi import APIRouter
 from pydantic import BaseModel
 from utils import index_utils

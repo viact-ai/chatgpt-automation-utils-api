@@ -1,5 +1,4 @@
-import json
-from typing import Dict, List, TypedDict
+from typing import List, TypedDict
 
 import requests
 from bs4 import BeautifulSoup
@@ -19,7 +18,8 @@ def crawl_search_google(
 
     Args:
         search_term (str): keywords to search, seperate by space
-        limit (int, optional): number of result item to get from search result. Defaults to 10.
+        limit (int, optional): number of result item to get from search
+        result. Defaults to 10.
 
     Returns:
         List[SearchItemResult]: List of result
@@ -40,12 +40,16 @@ def crawl_search_google(
         "hl": "en",  # language
         "gl": "us",  # country of the search, US -> USA
         "start": 0,  # number page by default up to 0
-        # "filter": 0       # shows more than 10 pages. By default up to ~10-13 if filter = 1.
+        # "filter": 0       # shows more than 10 pages.
+        # By default up to ~10-13 if filter = 1.
     }
 
     # https://docs.python-requests.org/en/master/user/quickstart/#custom-headers
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            " (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
+        )
     }
 
     page_num = 0
@@ -55,7 +59,10 @@ def crawl_search_google(
         print(f"page: {page_num}")
 
         html = requests.get(
-            "https://www.google.com/search", params=params, headers=headers, timeout=30
+            "https://www.google.com/search",
+            params=params,
+            headers=headers,
+            timeout=30,
         )
         soup = BeautifulSoup(html.text, "lxml")
 
@@ -64,7 +71,8 @@ def crawl_search_google(
             link = result.select_one("a")["href"]
             try:
                 description = result.select_one(".VwiC3b").text
-            except:
+            except Exception as err:
+                print(err)
                 description = None
 
             website_description_data.append(

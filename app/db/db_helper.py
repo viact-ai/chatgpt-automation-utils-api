@@ -1,5 +1,3 @@
-import urllib.parse
-
 import pymongo
 from utils.config_utils import get_config
 
