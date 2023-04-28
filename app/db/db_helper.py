@@ -8,13 +8,11 @@ config = get_config("db")
 
 def get_client():
     client = pymongo.MongoClient(
-        "mongodb://{}:{}@{}:{}/{}?authSource=admin".format(
-            config.username,
-            config.password,
-            config.host,
-            config.port,
-            config.database,
-        ),
+        host=config.host,
+        port=int(config.port),
+        username=config.username,
+        password=config.password,
+        authSource=config.database,
         serverSelectionTimeoutMS=config.server_selection_timeout_ms,
         directConnection=config.direct_connection,
         tls=config.tls,

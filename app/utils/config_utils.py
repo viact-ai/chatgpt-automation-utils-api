@@ -15,7 +15,7 @@ OmegaConf.register_new_resolver("env", oc_env_resolver)
 
 
 def get_config(module_name: str = None) -> DictConfig:
-    with initialize(config_path="../config"):
+    with initialize(config_path="../config", version_base="v1.1"):
         config = compose("app.yaml")
         if module_name:
             module_config = config.get(module_name, {})
