@@ -1,7 +1,10 @@
 import pymongo
 from utils.config_utils import get_config
+from utils.logger_utils import get_logger
 
 config = get_config("db")
+
+logger = get_logger()
 
 
 def get_client():
@@ -13,7 +16,7 @@ def get_client():
         authSource=config.database,
         serverSelectionTimeoutMS=config.server_selection_timeout_ms,
         directConnection=config.direct_connection,
-        tls=config.tls,
+        tls=False,
         tlsInsecure=config.tls_insecure,
     )
     return client
@@ -24,5 +27,5 @@ def test_connection(client: pymongo.MongoClient) -> bool:
         client.server_info()
         return True
     except Exception as err:
-        print(err)
+        logger.exception(err)
         return False
