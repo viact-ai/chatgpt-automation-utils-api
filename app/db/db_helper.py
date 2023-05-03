@@ -16,7 +16,7 @@ def get_client():
         authSource=config.database,
         serverSelectionTimeoutMS=config.server_selection_timeout_ms,
         directConnection=config.direct_connection,
-        tls=False,
+        tls=config.tls,
         tlsInsecure=config.tls_insecure,
     )
     return client
