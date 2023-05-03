@@ -1,4 +1,6 @@
 app:
+  host: 0.0.0.0
+  port: 8899
   logdir: ./log
 
 llm:
@@ -20,3 +22,9 @@ db:
   server_selection_timeout_ms: ${env:DB_SERVER_SELECTION_TIMEOUT_MS}
   tls: ${env:DB_TLS}
   tls_insecure: ${env:DB_TLS_INSECURE}
+
+smtp:
+  server: ${env:SMTP_SERVER}
+  port: ${env:SMTP_PORT}
+  user: ${env:SMTP_USER}
+  password: ${env:SMTP_PASSWORD}

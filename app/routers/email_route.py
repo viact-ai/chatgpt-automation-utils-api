@@ -1,9 +1,10 @@
+from datetime import datetime
 from typing import List
 
 from db import db_helper
 from fastapi import APIRouter
 from pydantic import BaseModel
-from utils import llm_utils
+from utils import email_utils, llm_utils
 from utils.config_utils import get_config
 
 router = APIRouter()
@@ -67,6 +68,28 @@ def add_revision(
     return {
         "status": "success",
         "inserted_id": str(inserted.inserted_id),
+    }
+
+
+class ScheduleEmailBody(BaseModel):
+    recipients: List[str]
+    subject: str
+    content: str
+    scheduled_time: datetime
+
+
+@router.post("/schedule")
+def schedule_email(
+    body: ScheduleEmailBody,
+):
+    email_utils.schedule_email(
+        recipients=body.recipients,
+        subject=body.subject,
+        content=body.content,
+        scheduled_time=body.scheduled_time,
+    )
+    return {
+        "status": "success",
     }
 
 
