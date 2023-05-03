@@ -1,25 +1,33 @@
-from typing import List, Literal
+from typing import List
 
+from db import db_helper
 from fastapi import APIRouter
 from pydantic import BaseModel
-from utils import index_utils
+from utils import llm_utils
 
 router = APIRouter()
+
+client = db_helper.get_client()
 
 
 class IndexDocumentsBody(BaseModel):
     documents: List[str]
     query: str
-    mode: Literal["default", "tree_summarize"] = "default"
 
 
-@router.post("/index_documents")
+@router.post("/query_documents")
 def index_documents(
     body: IndexDocumentsBody,
 ):
-    docs = index_utils.txts2docs(body.documents)
-    nodes = index_utils.docs2nodes(docs)
-    index = index_utils.nodes2index(nodes)
+    docs = llm_utils.txts2docs(body.documents)
+    nodes = llm_utils.docs2nodes(docs)
+    index = llm_utils.nodes2index(nodes)
 
-    response = index_utils.query_index(index, body.query, mode=body.mode)
-    return response
+    response = llm_utils.query_index(
+        index,
+        body.query,
+    )
+    return {
+        "status": "success",
+        "result": response,
+    }

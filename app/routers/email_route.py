@@ -1,0 +1,115 @@
+from typing import List
+
+from db import db_helper
+from fastapi import APIRouter
+from pydantic import BaseModel
+from utils import llm_utils
+from utils.config_utils import get_config
+
+router = APIRouter()
+
+client = db_helper.get_client()
+
+config = get_config()
+
+
+class EmailPromptRevisionBody(BaseModel):
+    email_id: str
+    prompt: str
+    email_body: str
+    gpt_result: str
+
+
+@router.get("/gpt_revision")
+def get_gpt_revision(
+    email_id: str,
+):
+    db = client["chatgpt"]
+    collection = db["email_revisions"]
+    documents = collection.find({"email_id": email_id})
+    documents = [db_helper.jsonify_doc(doc) for doc in documents]
+    return {
+        "status": "success",
+        "revisions": documents,
+    }
+
+
+@router.get("/query_thread")
+def query_email_thread(
+    thread_id: str,
+    q: str,
+):
+    if not llm_utils.check_index_exists(thread_id):
+        return {
+            "status": "failed",
+            "message": "index does not exists",
+        }
+
+    index = llm_utils.load_index(path=thread_id)
+
+    response = llm_utils.query_index(
+        index,
+        q,
+    )
+    return {
+        "status": "success",
+        "result": response,
+    }
+
+
+@router.post("/gpt_revision")
+def add_revision(
+    body: EmailPromptRevisionBody,
+):
+    db = client["chatgpt"]
+    collection = db["email_revisions"]
+    inserted = collection.insert_one(body.dict())
+    return {
+        "status": "success",
+        "inserted_id": str(inserted.inserted_id),
+    }
+
+
+class IndexThreadBody(BaseModel):
+    thread_id: str
+    messages: List[str]
+
+
+@router.post("/index_thread")
+def index_email_thread(
+    body: IndexThreadBody,
+):
+    if llm_utils.check_index_exists(body.thread_id):
+        return {
+            "status": "failed",
+            "message": "index already exists",
+        }
+
+    docs = llm_utils.txts2docs(body.messages)
+    nodes = llm_utils.docs2nodes(docs)
+    index = llm_utils.nodes2index(nodes)
+
+    llm_utils.save_index(index=index, path=body.thread_id)
+    return {
+        "status": "success",
+    }
+
+
+@router.put("/index_thread")
+def update_index_email_thread(
+    body: IndexThreadBody,
+):
+    if not llm_utils.check_index_exists(body.thread_id):
+        return {
+            "status": "failed",
+            "message": "index does not exists",
+        }
+
+    docs = llm_utils.txts2docs(body.messages)
+    nodes = llm_utils.docs2nodes(docs)
+    index = llm_utils.nodes2index(nodes)
+
+    llm_utils.save_index(index=index, path=body.thread_id)
+    return {
+        "status": "success",
+    }

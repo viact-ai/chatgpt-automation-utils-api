@@ -1,15 +1,17 @@
 from pathlib import Path
-from typing import List, Literal, Union
+from typing import List, Union
 
 from langchain import OpenAI
 from llama_index import (
     Document,
-    GPTSimpleVectorIndex,
+    GPTVectorStoreIndex,
     LLMPredictor,
     PromptHelper,
     ServiceContext,
+    StorageContext,
+    load_index_from_storage,
 )
-from llama_index.data_structs.node_v2 import Node
+from llama_index.data_structs import Node
 from llama_index.node_parser import SimpleNodeParser
 from utils.config_utils import get_config
 
@@ -26,7 +28,9 @@ def docs2nodes(docs: List[Document]) -> List[Node]:
     return nodes
 
 
-def nodes2index(nodes: List[Node]) -> GPTSimpleVectorIndex:
+def nodes2index(
+    nodes: List[Node],
+) -> GPTVectorStoreIndex:
     # define LLM
     llm_predictor = LLMPredictor(
         llm=OpenAI(
@@ -47,24 +51,49 @@ def nodes2index(nodes: List[Node]) -> GPTSimpleVectorIndex:
     service_context = ServiceContext.from_defaults(
         llm_predictor=llm_predictor, prompt_helper=prompt_helper
     )
-    index = GPTSimpleVectorIndex(nodes, service_context=service_context)
+    index = GPTVectorStoreIndex(nodes, service_context=service_context)
     return index
 
 
-def load_index(path: Union[Path, str]) -> GPTSimpleVectorIndex:
-    index = GPTSimpleVectorIndex.load_from_disk(str(path))
+def load_index(
+    path: Union[str, Path] = None,
+) -> GPTVectorStoreIndex:
+    persist_dir = Path(config.llm.index_dir)
+    if path:
+        path = persist_dir / path
+
+    # rebuild storage context
+    storage_context = StorageContext.from_defaults(persist_dir=str(path))
+    # load index
+    index = load_index_from_storage(
+        storage_context,
+    )
     return index
 
 
-def save_index(index: GPTSimpleVectorIndex, path: Path) -> None:
-    if not path.exists():
-        path.mkdir(parents=True, exist_ok=True)
-    index.save_to_disk(str(path))
+def save_index(
+    index: GPTVectorStoreIndex,
+    path: Union[str, Path] = None,
+) -> None:
+    persist_dir = Path(config.llm.index_dir)
+    if path:
+        path = persist_dir / path
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    index.storage_context.persist(
+        persist_dir=str(path),
+    )
 
 
 def query_index(
-    index: GPTSimpleVectorIndex,
+    index: GPTVectorStoreIndex,
     query: str,
-    mode: Literal["default", "tree_summarize"] = "default",
 ):
-    return index.query(query, mode=mode)
+    query_engine = index.as_query_engine()
+    return query_engine.query(query).response
+
+
+def check_index_exists(path: Union[Path, str]) -> bool:
+    persist_dir = Path(config.llm.index_dir)
+    path = persist_dir / path
+    return path.exists()

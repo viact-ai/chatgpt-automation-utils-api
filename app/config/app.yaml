@@ -8,6 +8,8 @@ llm:
   num_output: 256
   max_chunk_overlap: 40
 
+  index_dir: ./llm_storage
+
 db:
   host: ${env:DB_HOST}
   port: ${env:DB_PORT}

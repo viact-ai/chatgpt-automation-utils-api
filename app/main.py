@@ -3,7 +3,7 @@ from os import getenv
 import dotenv
 from db import db_helper
 from fastapi import FastAPI
-from routers import crawler_route, general_utils_route, llm_route
+from routers import crawler_route, email_route, general_utils_route, llm_route
 
 dotenv.load_dotenv()
 
@@ -23,6 +23,10 @@ app.include_router(
 app.include_router(
     llm_route.router,
     prefix="/llm",
+)
+app.include_router(
+    email_route.router,
+    prefix="/email",
 )
 
 

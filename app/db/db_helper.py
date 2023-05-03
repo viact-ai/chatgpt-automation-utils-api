@@ -29,3 +29,16 @@ def test_connection(client: pymongo.MongoClient) -> bool:
     except Exception as err:
         logger.exception(err)
         return False
+
+
+def jsonify_doc(doc: dict) -> dict:
+    """Convert ObjectID of field _id to string
+
+    Args:
+        doc (dict): document
+
+    Returns:
+        dict: document with _id as string
+    """
+    doc["_id"] = str(doc["_id"])
+    return doc
