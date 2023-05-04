@@ -48,13 +48,13 @@ def query_email_thread(
 
     index = llm_utils.load_index(path=thread_id)
 
-    response = llm_utils.query_index(
+    result = llm_utils.query_index(
         index,
         q,
     )
     return {
         "status": "success",
-        "result": response,
+        "result": result,
     }
 
 

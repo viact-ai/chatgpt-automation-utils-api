@@ -23,11 +23,11 @@ def index_documents(
     nodes = llm_utils.docs2nodes(docs)
     index = llm_utils.nodes2index(nodes)
 
-    response = llm_utils.query_index(
+    result = llm_utils.query_index(
         index,
         body.query,
     )
     return {
         "status": "success",
-        "result": response,
+        "result": result,
     }

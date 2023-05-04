@@ -4,7 +4,7 @@ from typing import List, Union
 from langchain import OpenAI
 from llama_index import (
     Document,
-    GPTVectorStoreIndex,
+    GPTListIndex,
     LLMPredictor,
     PromptHelper,
     ServiceContext,
@@ -13,6 +13,7 @@ from llama_index import (
 )
 from llama_index.data_structs import Node
 from llama_index.node_parser import SimpleNodeParser
+from llama_index.response.schema import RESPONSE_TYPE
 from utils.config_utils import get_config
 
 config = get_config()
@@ -30,7 +31,7 @@ def docs2nodes(docs: List[Document]) -> List[Node]:
 
 def nodes2index(
     nodes: List[Node],
-) -> GPTVectorStoreIndex:
+) -> GPTListIndex:
     # define LLM
     llm_predictor = LLMPredictor(
         llm=OpenAI(
@@ -51,13 +52,13 @@ def nodes2index(
     service_context = ServiceContext.from_defaults(
         llm_predictor=llm_predictor, prompt_helper=prompt_helper
     )
-    index = GPTVectorStoreIndex(nodes, service_context=service_context)
+    index = GPTListIndex(nodes, service_context=service_context)
     return index
 
 
 def load_index(
     path: Union[str, Path] = None,
-) -> GPTVectorStoreIndex:
+) -> GPTListIndex:
     persist_dir = Path(config.llm.index_dir)
     if path:
         path = persist_dir / path
@@ -72,7 +73,7 @@ def load_index(
 
 
 def save_index(
-    index: GPTVectorStoreIndex,
+    index: GPTListIndex,
     path: Union[str, Path] = None,
 ) -> None:
     persist_dir = Path(config.llm.index_dir)
@@ -86,11 +87,11 @@ def save_index(
 
 
 def query_index(
-    index: GPTVectorStoreIndex,
+    index: GPTListIndex,
     query: str,
-):
+) -> RESPONSE_TYPE:
     query_engine = index.as_query_engine()
-    return query_engine.query(query).response
+    return query_engine.query(query)
 
 
 def check_index_exists(path: Union[Path, str]) -> bool:
