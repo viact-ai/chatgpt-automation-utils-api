@@ -64,6 +64,20 @@ def add_revision(
 ):
     db = client["chatgpt"]
     collection = db["email_revisions"]
+
+    existing_item = collection.find_one(
+        {
+            "email_id": body.email_id,
+            "prompt": body.prompt,
+        }
+    )
+    if existing_item:
+        if existing_item["gpt_result"] == body.gpt_result:
+            return {
+                "status": "failed",
+                "message": "revision already exists",
+            }
+
     inserted = collection.insert_one(body.dict())
     return {
         "status": "success",
