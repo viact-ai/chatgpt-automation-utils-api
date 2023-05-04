@@ -7,11 +7,35 @@ from omegaconf import DictConfig, OmegaConf
 dotenv.load_dotenv()
 
 
-def oc_env_resolver(key: str):
-    return getenv(key, None)
+def parse_value(value):
+    """
+    A helper function that tries to parse a value as an integer, float or boolean.
+    If the value cannot be parsed, returns the original value.
+    """
+    if isinstance(value, str):
+        _value = value.strip().lower()
+        if _value == "true":
+            return True
+        elif _value == "false":
+            return False
+        else:
+            try:
+                return int(_value)
+            except ValueError:
+                pass
+            try:
+                return float(_value)
+            except ValueError:
+                pass
+    return value
 
 
-OmegaConf.register_new_resolver("env", oc_env_resolver)
+def env_resolver(key: str):
+    value = getenv(key, None)
+    return parse_value(value)
+
+
+OmegaConf.register_new_resolver("env", env_resolver)
 
 
 def get_config(module_name: str = None) -> DictConfig:

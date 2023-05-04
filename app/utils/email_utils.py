@@ -22,25 +22,36 @@ def send_email(
     content: str,
 ):
     try:
-        sender = config.smtp.user
+        sender = config.smtp.mail_from
         msg = EmailMessage()
         msg["Subject"] = subject
         msg["From"] = sender
         msg["To"] = ", ".join(recipients)
         msg.set_content(content)
 
-        with smtplib.SMTP(config.smtp.server, config.smtp.port) as s:
+        _smtp = None
+        if config.smtp.ssl:
+            _smtp = smtplib.SMTP_SSL
+        else:
+            _smtp = smtplib.SMTP
+
+        with _smtp(config.smtp.server, config.smtp.port) as s:
             s.ehlo()
-            s.starttls()
-            s.ehlo()
+            if config.smtp.starttls:
+                s.starttls()
+                s.ehlo()
             s.login(
                 config.smtp.user,
                 config.smtp.password,
             )
-            s.sendmail(sender, recipients, msg.as_string())
+            # s.sendmail(sender, recipients, msg.as_string())
+            s.send_message(msg)
+
+        return True
 
     except Exception as err:
         logger.exception(err)
+        return False
 
 
 def schedule_email(
@@ -72,17 +83,24 @@ def send_scheduled_emails():
         if email["is_sent"]:
             continue
 
-        send_email(
+        logger.info(f"Sending email {email['_id']}")
+        ok = send_email(
             recipients=email["recipients"],
             subject=email["subject"],
             content=email["content"],
         )
-        logger.info(f"Email {email['_id']} sent")
+        if ok:
+            logger.info(f"Email {email['_id']} sent")
 
-        collection.update_one(
-            {"_id": email["_id"]},
-            {"$set": {"is_sent": True}},
-        )
+            collection.update_one(
+                {"_id": email["_id"]},
+                {"$set": {"is_sent": True}},
+            )
+            logger.info(f"Email {email['_id']} marked as sent")
+        else:
+            logger.error(
+                f"Email {email['_id']} failed to send. Retrying later"
+            )
 
 
 async def send_scheduled_emails_loop():

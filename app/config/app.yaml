@@ -26,5 +26,8 @@ db:
 smtp:
   server: ${env:SMTP_SERVER}
   port: ${env:SMTP_PORT}
+  starttls: ${env:SMTP_START_TLS}
+  ssl: ${env:SMTP_SSL}
   user: ${env:SMTP_USER}
   password: ${env:SMTP_PASSWORD}
+  mail_from: ${env:SMTP_MAIL_FROM}
