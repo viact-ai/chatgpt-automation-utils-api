@@ -79,7 +79,9 @@ def schedule_email(
 def send_scheduled_emails():
     db = client["chatgpt"]
     collection = db["scheduled_emails"]
-    for email in collection.find({"scheduled_time": {"$lt": datetime.now()}}):
+    for email in collection.find(
+        {"scheduled_time": {"$lt": datetime.utcnow()}}
+    ):
         if email["is_sent"]:
             continue
 
