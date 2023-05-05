@@ -5,6 +5,7 @@ from langchain import OpenAI
 from llama_index import (
     Document,
     GPTListIndex,
+    GPTVectorStoreIndex,
     LLMPredictor,
     PromptHelper,
     ServiceContext,
@@ -19,7 +20,10 @@ from utils.config_utils import get_config
 config = get_config()
 
 
-def txts2docs(txts: List[str]) -> Document:
+GPT_INDEX_TYPE = Union[GPTListIndex, GPTVectorStoreIndex]
+
+
+def txts2docs(txts: List[str]) -> List[Document]:
     return [Document(txt) for txt in txts]
 
 
@@ -53,12 +57,13 @@ def nodes2index(
         llm_predictor=llm_predictor, prompt_helper=prompt_helper
     )
     index = GPTListIndex(nodes, service_context=service_context)
+    # index = GPTVectorStoreIndex(nodes, service_context=service_context)
     return index
 
 
 def load_index(
     path: Union[str, Path] = None,
-) -> GPTListIndex:
+) -> GPT_INDEX_TYPE:
     persist_dir = Path(config.llm.index_dir)
     if path:
         path = persist_dir / path
@@ -73,7 +78,7 @@ def load_index(
 
 
 def save_index(
-    index: GPTListIndex,
+    index: GPT_INDEX_TYPE,
     path: Union[str, Path] = None,
 ) -> None:
     persist_dir = Path(config.llm.index_dir)
@@ -86,8 +91,29 @@ def save_index(
     )
 
 
+def delete_index(
+    path: Union[str, Path],
+) -> bool:
+    """Delete index
+
+    Args:
+        path (Union[str, Path]): path to the index
+
+    Returns:
+        bool: ok. Return True if successful else False
+    """
+    persist_dir = Path(config.llm.index_dir)
+    path = persist_dir / path
+    if not path.exists():
+        return False
+
+    for file in path.glob("*"):
+        file.unlink(missing_ok=True)
+    path.rmdir()
+
+
 def query_index(
-    index: GPTListIndex,
+    index: GPT_INDEX_TYPE,
     query: str,
 ) -> RESPONSE_TYPE:
     query_engine = index.as_query_engine()

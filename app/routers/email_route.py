@@ -132,6 +132,28 @@ def index_email_thread(
     }
 
 
+@router.post("/index_thread/messages")
+def add_messages_to_thread(
+    body: IndexThreadBody,
+):
+    if not llm_utils.check_index_exists(body.thread_id):
+        return {
+            "status": "failed",
+            "message": "index does not exists",
+        }
+
+    docs = llm_utils.txts2docs(body.messages)
+    nodes = llm_utils.docs2nodes(docs)
+
+    index = llm_utils.load_index(path=body.thread_id)
+    index.insert_nodes(nodes)
+    llm_utils.save_index(index=index, path=body.thread_id)
+
+    return {
+        "status": "success",
+    }
+
+
 @router.put("/index_thread")
 def update_index_email_thread(
     body: IndexThreadBody,
@@ -147,6 +169,28 @@ def update_index_email_thread(
     index = llm_utils.nodes2index(nodes)
 
     llm_utils.save_index(index=index, path=body.thread_id)
+    return {
+        "status": "success",
+    }
+
+
+@router.delete("/index_thread/{thread_id}")
+def delete_index_email_thread(
+    thread_id: str,
+):
+    if not llm_utils.check_index_exists(thread_id):
+        return {
+            "status": "failed",
+            "message": "index does not exists",
+        }
+
+    ok = llm_utils.delete_index(path=thread_id)
+    if not ok:
+        return {
+            "status": "failed",
+            "message": "error when delete index",
+        }
+
     return {
         "status": "success",
     }
