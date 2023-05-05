@@ -112,6 +112,11 @@ def delete_index(
     path.rmdir()
 
 
+def list_index() -> List[str]:
+    persist_dir = Path(config.llm.index_dir)
+    return [str(path.name) for path in persist_dir.glob("*") if path.is_dir()]
+
+
 def query_index(
     index: GPT_INDEX_TYPE,
     query: str,

@@ -35,7 +35,7 @@ def get_gpt_revision(
     }
 
 
-@router.get("/query_thread")
+@router.get("/query_thread/{thread_id}")
 def query_email_thread(
     thread_id: str,
     q: str,
@@ -55,6 +55,15 @@ def query_email_thread(
     return {
         "status": "success",
         "result": result,
+    }
+
+
+@router.get("/index_thread")
+def list_thread_index():
+    index_list = llm_utils.list_index()
+    return {
+        "status": "success",
+        "index_list": index_list,
     }
 
 
