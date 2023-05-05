@@ -110,6 +110,7 @@ def delete_index(
     for file in path.glob("*"):
         file.unlink(missing_ok=True)
     path.rmdir()
+    return True
 
 
 def list_index() -> List[str]:
