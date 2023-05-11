@@ -2,9 +2,11 @@ import asyncio
 import smtplib
 from datetime import datetime
 from email.message import EmailMessage
-from typing import List
+from typing import List, Literal, TypedDict
 
 from db import db_helper
+from langchain import LLMChain, OpenAI, PromptTemplate
+from langchain.memory import ConversationBufferWindowMemory
 from utils.config_utils import get_config
 from utils.logger_utils import get_logger
 
@@ -111,3 +113,57 @@ async def send_scheduled_emails_loop():
         send_scheduled_emails()
         # Sleep for a specified interval before checking again
         await asyncio.sleep(10)  # Sleep for 10 seconds before checking again
+
+
+class HistoryMessage(TypedDict):
+    role: Literal["human", "assistant"]
+    message: str
+
+
+def write_follow_up_email(
+    user_input: str,
+    history: List[HistoryMessage],
+) -> str:
+    template = """Assitant is working at an AI company that mainly focus on computer vision.
+    Asisstant's job is to write a follow-up email to a potential customer who is interested in our product.
+    You have to make sure to answer all the questions that the customer has asked.
+    You also have to make sure to get all of the following information from the customer:
+    - Brife description of the customer's company
+    - Problem that the customer is facing or want to apply AI to
+    - Budget to spend
+    - Time to spend
+    You have to ask for all the information above until you get all.
+    If the information is mentioned in the email, don't ask for it again.
+    Once you have enough information, summarize the information and write a follow-up email to the customer.
+    Then ask for the time to schedule a meeting with the customer.
+
+    {history}
+    Human: {human_input}
+    Assistant: """  # noqa: E501
+
+    prompt = PromptTemplate(
+        template=template,
+        input_variables=["history", "human_input"],
+    )
+
+    memory = ConversationBufferWindowMemory(k=5)
+
+    for msg in history:
+        r = msg["role"]
+        m = msg["message"]
+        if r == "human":
+            memory.chat_memory.add_user_message(m)
+        else:
+            memory.chat_memory.add_ai_message(m)
+
+    chatgpt_chain = LLMChain(
+        llm=OpenAI(temperature=0.1),
+        prompt=prompt,
+        verbose=True,
+        memory=memory,
+    )
+
+    output = chatgpt_chain.predict(
+        human_input=user_input,
+    )
+    return output

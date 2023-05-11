@@ -6,6 +6,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from utils import email_utils, llm_utils
 from utils.config_utils import get_config
+from utils.email_utils import HistoryMessage
 
 router = APIRouter()
 
@@ -202,4 +203,23 @@ def delete_index_email_thread(
 
     return {
         "status": "success",
+    }
+
+
+class FollowUpEmailBody(BaseModel):
+    history: List[HistoryMessage]
+    user_input: str
+
+
+@router.post("/follow_up")
+def follow_up_email(
+    body: FollowUpEmailBody,
+):
+    result = email_utils.write_follow_up_email(
+        history=body.history,
+        user_input=body.user_input,
+    )
+    return {
+        "status": "success",
+        "result": result,
     }
