@@ -21,6 +21,6 @@ jobs:
           git checkout main
           git reset --hard HEAD
           git pull origin main
-          source /opt/chatgpt-automation-utils/bin/activate && pip install -r requirements.txt
+          docker build -t chatgpt-automation-utils-api:latest .
           systemctl restart chatgpt-automation-utils-api
           systemctl status chatgpt-automation-utils-api
