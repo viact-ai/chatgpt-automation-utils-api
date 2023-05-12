@@ -22,7 +22,7 @@ def send_email(
     recipients: List[str],
     subject: str,
     content: str,
-    thread_id: str = None,
+    message_id: str = None,
 ) -> bool:
     """Send email to recipients
 
@@ -30,6 +30,7 @@ def send_email(
         recipients (List[str]): list of email addresses
         subject (str): subject of the email
         content (str): body/content of the email
+        message_id: (str): message id to reply to. Default to None
 
     Returns:
         bool: return True if ok, False otherwise
@@ -41,9 +42,9 @@ def send_email(
         msg["From"] = sender
         msg["To"] = ", ".join(recipients)
 
-        if thread_id:
-            msg["In-Reply-To"] = thread_id
-            msg["References"] = thread_id
+        if message_id:
+            msg["In-Reply-To"] = message_id
+            msg["References"] = message_id
 
         msg.set_content(content)
 
@@ -77,7 +78,7 @@ def schedule_email(
     subject: str,
     content: str,
     scheduled_time: datetime,
-    thread_id: str = None,
+    message_id: str = None,
 ):
     try:
         db = client["chatgpt"]
@@ -87,7 +88,7 @@ def schedule_email(
                 "recipients": recipients,
                 "subject": subject,
                 "content": content,
-                "thread_id": thread_id,
+                "message_id": message_id,
                 "scheduled_time": scheduled_time,
                 "is_sent": False,
             }
@@ -110,7 +111,7 @@ def send_scheduled_emails():
             recipients=email["recipients"],
             subject=email["subject"],
             content=email["content"],
-            thread_id=email["thread_id"] if "thread_id" in email else None,
+            message_id=email["message_id"] if "message_id" in email else None,
         )
         if ok:
             logger.info(f"Email {email['_id']} sent")
