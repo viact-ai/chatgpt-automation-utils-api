@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from db import db_helper
 from fastapi import APIRouter
@@ -211,6 +211,7 @@ def delete_index_email_thread(
 class FollowUpEmailBody(BaseModel):
     history: List[HistoryMessage]
     user_input: str
+    instruction: Optional[str] = None
 
 
 @router.post("/follow_up")
@@ -220,6 +221,7 @@ def follow_up_email(
     result = email_utils.write_follow_up_email(
         history=body.history,
         user_input=body.user_input,
+        instruction=body.instruction,
     )
     return {
         "status": "success",

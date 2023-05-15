@@ -143,23 +143,29 @@ class HistoryMessage(TypedDict):
 def write_follow_up_email(
     user_input: str,
     history: List[HistoryMessage],
+    instruction: str = None,
 ) -> str:
-    template = """Assitant is working at an AI company that mainly focus on computer vision.
-    Asisstant's job is to write a follow-up email to a potential customer who is interested in our product.
-    You have to make sure to answer all the questions that the customer has asked.
-    You also have to make sure to get all of the following information from the customer:
-    - Brife description of the customer's company
-    - Problem that the customer is facing or want to apply AI to
-    - Budget to spend
-    - Time to spend
-    You have to ask for all the information above until you get all.
-    If the information is mentioned in the email, don't ask for it again.
-    Once you have enough information, summarize the information and write a follow-up email to the customer.
-    Then ask for the time to schedule a meeting with the customer.
+    if not instruction:
+        instruction = """Assitant is working at an AI company that mainly focus on computer vision.
+        Asisstant's job is to write a follow-up email to a potential customer who is interested in our product.
+        You have to make sure to answer all the questions that the customer has asked.
+        You also have to make sure to get all of the following information from the customer:
+        - Brife description of the customer's company
+        - Problem that the customer is facing or want to apply AI to
+        - Budget to spend
+        - Time to spend
+        You have to ask for all the information above until you get all.
+        If the information is mentioned in the email, don't ask for it again.
+        Once you have enough information, summarize the information and write a follow-up email to the customer.
+        Then ask for the time to schedule a meeting with the customer."""  # noqa: E501
+
+    template = """
 
     {history}
     Human: {human_input}
-    Assistant: """  # noqa: E501
+    Assistant: """
+
+    template = instruction + template
 
     prompt = PromptTemplate(
         template=template,
