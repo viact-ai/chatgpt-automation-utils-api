@@ -78,7 +78,6 @@ def schedule_email(
     subject: str,
     content: str,
     scheduled_time: datetime,
-    message_id: str = None,
 ):
     try:
         db = client["chatgpt"]
@@ -88,7 +87,6 @@ def schedule_email(
                 "recipients": recipients,
                 "subject": subject,
                 "content": content,
-                "message_id": message_id,
                 "scheduled_time": scheduled_time,
                 "is_sent": False,
             }
