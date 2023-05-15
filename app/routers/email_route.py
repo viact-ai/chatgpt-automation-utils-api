@@ -101,6 +101,7 @@ class ScheduleEmailBody(BaseModel):
     content: str
     scheduled_time: datetime
     reply_to: str = None
+    references: str = None
 
 
 @router.post("/schedule")
@@ -113,6 +114,7 @@ def schedule_email(
         content=body.content,
         scheduled_time=body.scheduled_time,
         reply_to=body.reply_to,
+        references=body.references,
     )
     return {
         "status": "success",

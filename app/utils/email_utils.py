@@ -23,6 +23,7 @@ def send_email(
     subject: str,
     content: str,
     reply_to: str = None,
+    references: str = None,
 ) -> bool:
     """Send email to recipients
 
@@ -30,7 +31,8 @@ def send_email(
         recipients (List[str]): list of email addresses
         subject (str): subject of the email
         content (str): body/content of the email
-        reply_to: (str): message id to reply to. Default to None
+        reply_to (str): message id to reply to. Default to None
+        references (str): message ids to reference. Default to None
 
     Returns:
         bool: return True if ok, False otherwise
@@ -44,7 +46,7 @@ def send_email(
 
         if reply_to:
             msg["In-Reply-To"] = reply_to
-            msg["References"] = reply_to
+            msg["References"] = references or "" + " " + reply_to
 
         msg.set_content(content)
 
@@ -79,6 +81,7 @@ def schedule_email(
     content: str,
     scheduled_time: datetime,
     reply_to: str = None,
+    references: str = None,
 ):
     try:
         db = client["chatgpt"]
@@ -89,6 +92,7 @@ def schedule_email(
                 "subject": subject,
                 "content": content,
                 "reply_to": reply_to,
+                "references": references,
                 "scheduled_time": scheduled_time,
                 "is_sent": False,
             }
@@ -112,6 +116,7 @@ def send_scheduled_emails():
             subject=email["subject"],
             content=email["content"],
             reply_to=email["reply_to"] if "reply_to" in email else None,
+            references=email["references"] if "references" in email else None,
         )
         if ok:
             logger.info(f"Email {email['_id']} sent")
