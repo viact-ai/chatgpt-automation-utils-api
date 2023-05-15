@@ -22,6 +22,8 @@ def send_email(
     recipients: List[str],
     subject: str,
     content: str,
+    cc: str = None,
+    bcc: str = None,
     reply_to: str = None,
     references: str = None,
 ) -> bool:
@@ -31,6 +33,8 @@ def send_email(
         recipients (List[str]): list of email addresses
         subject (str): subject of the email
         content (str): body/content of the email
+        cc (str): cc email address. Default to None
+        bcc (str): bcc email address. Default to None
         reply_to (str): message id to reply to. Default to None
         references (str): message ids to reference. Default to None
 
@@ -43,6 +47,11 @@ def send_email(
         msg["Subject"] = subject
         msg["From"] = sender
         msg["To"] = ", ".join(recipients)
+
+        if cc:
+            msg["Cc"] = cc
+        if bcc:
+            msg["Bcc"] = bcc
 
         if reply_to:
             msg["In-Reply-To"] = reply_to
@@ -80,6 +89,8 @@ def schedule_email(
     subject: str,
     content: str,
     scheduled_time: datetime,
+    cc: str = None,
+    bcc: str = None,
     reply_to: str = None,
     references: str = None,
 ):
@@ -92,6 +103,8 @@ def schedule_email(
                 "subject": subject,
                 "content": content,
                 "reply_to": reply_to,
+                "cc": cc,
+                "bcc": bcc,
                 "references": references,
                 "scheduled_time": scheduled_time,
                 "is_sent": False,
@@ -117,6 +130,8 @@ def send_scheduled_emails():
             content=email["content"],
             reply_to=email["reply_to"] if "reply_to" in email else None,
             references=email["references"] if "references" in email else None,
+            cc=email["cc"] if "cc" in email else None,
+            bcc=email["bcc"] if "bcc" in email else None,
         )
         if ok:
             logger.info(f"Email {email['_id']} sent")
