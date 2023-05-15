@@ -16,9 +16,11 @@ def crawl_google_result(
 
     response = []
     for result in results:
-        result["text_content"] = crawler_utils.crawl_website(result["link"])[
-            "text_content"
-        ]
+        page_content = crawler_utils.crawl_website(result["link"])
+        if page_content:
+            result["text_content"] = page_content["text_content"]
+        else:
+            result["text_content"] = None
         response.append(result)
     return response
 

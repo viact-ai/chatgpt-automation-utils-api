@@ -1,7 +1,10 @@
-from typing import List, TypedDict
+from typing import List, TypedDict, Union
 
 import requests
 from bs4 import BeautifulSoup
+from utils.logger_utils import get_logger
+
+logger = get_logger()
 
 
 class SearchItemResult(TypedDict):
@@ -96,7 +99,7 @@ class WebContentResult(TypedDict):
     text_content: str
 
 
-def crawl_website(link: str) -> WebContentResult:
+def crawl_website(link: str) -> Union[WebContentResult, None]:
     """Crawl website content
 
     Args:
@@ -113,7 +116,12 @@ def crawl_website(link: str) -> WebContentResult:
         }
     """
 
-    response = requests.get(link)
+    try:
+        response = requests.get(link)
+    except Exception as err:
+        logger.exception(err)
+        return
+
     soup = BeautifulSoup(response.content, "html.parser")
 
     # Find the title and description tags in the HTML
