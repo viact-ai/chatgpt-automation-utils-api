@@ -71,6 +71,9 @@ async def crawl_search_google(
         soup = BeautifulSoup(html.text, "lxml")
 
         for result in soup.select(".tF2Cxc"):
+            if len(website_description_data) >= limit:
+                break
+
             title = result.select_one("h3").text
             link = result.select_one("a")["href"]
             try:
@@ -86,6 +89,10 @@ async def crawl_search_google(
                     "description": description,
                 }
             )
+
+        if len(website_description_data) >= limit:
+            break
+
         if soup.select_one(".d6cvqb a[id=pnnext]"):
             params["start"] += 10
         else:
