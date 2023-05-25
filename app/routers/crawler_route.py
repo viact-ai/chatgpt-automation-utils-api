@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter
 from utils import crawler_utils
 
@@ -5,24 +7,33 @@ router = APIRouter()
 
 
 @router.get("/google_result")
-def crawl_google_result(
+async def crawl_google_result(
     q: str,
     limit: int = 10,
     get_content: bool = False,
 ):
-    results = crawler_utils.crawl_search_google(q, limit)
+    results = await crawler_utils.crawl_search_google(q, limit)
     if not get_content:
         return results
 
-    response = []
-    for result in results:
-        page_content = crawler_utils.crawl_website(result["link"])
-        if page_content:
-            result["text_content"] = page_content["text_content"]
+    responses = await asyncio.gather(
+        *map(
+            crawler_utils.crawl_website,
+            [r["link"] for r in results],
+        )
+    )
+
+    result = []
+    for resp, r in zip(responses, results):
+        if resp is None:
+            r["text_content"] = None
         else:
-            result["text_content"] = None
-        response.append(result)
-    return response
+            content = resp["text_content"].strip()
+            if content:
+                r["text_content"] = content
+
+        result.append(r)
+    return result
 
 
 @router.get("/website")

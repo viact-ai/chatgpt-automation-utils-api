@@ -1,7 +1,6 @@
 import logging
 import sys
 from pathlib import Path
-from typing import Union
 
 from utils.config_utils import get_config
 
@@ -10,7 +9,7 @@ config = get_config("app")
 
 def get_logger(
     name: str = "app",
-    logdir: Union[Path, str] = Path(config.logdir),
+    logdir: Path | str = Path(config.logdir),
     log_level: int = logging.INFO,
 ) -> logging.Logger:
     """Setup a logger with file and stream handlers.
@@ -18,7 +17,7 @@ def get_logger(
     Args:
         name (str, optional): name of logger. Defaults to "app".
 
-        logdir (Union[Path, str], optional): folder where log files will
+        logdir (Path | str, optional): folder where log files will
         be stored. Defaults to Path(config.logdir).
 
         log_level (int, optional): log level. Defaults to logging.INFO.

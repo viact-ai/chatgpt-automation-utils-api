@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import List, Union
 
 from langchain import OpenAI
 from llama_index import (
@@ -20,21 +19,21 @@ from utils.config_utils import get_config
 config = get_config()
 
 
-GPT_INDEX_TYPE = Union[GPTListIndex, GPTVectorStoreIndex]
+GPT_INDEX_TYPE = GPTListIndex | GPTVectorStoreIndex
 
 
-def txts2docs(txts: List[str]) -> List[Document]:
+def txts2docs(txts: list[str]) -> list[Document]:
     return [Document(txt) for txt in txts]
 
 
-def docs2nodes(docs: List[Document]) -> List[Node]:
+def docs2nodes(docs: list[Document]) -> list[Node]:
     parser = SimpleNodeParser()
     nodes = parser.get_nodes_from_documents(docs)
     return nodes
 
 
 def nodes2index(
-    nodes: List[Node],
+    nodes: list[Node],
 ) -> GPTListIndex:
     # define LLM
     llm_predictor = LLMPredictor(
@@ -62,7 +61,7 @@ def nodes2index(
 
 
 def load_index(
-    path: Union[str, Path] = None,
+    path: str | Path = None,
 ) -> GPT_INDEX_TYPE:
     persist_dir = Path(config.llm.index_dir)
     if path:
@@ -79,7 +78,7 @@ def load_index(
 
 def save_index(
     index: GPT_INDEX_TYPE,
-    path: Union[str, Path] = None,
+    path: str | Path = None,
 ) -> None:
     persist_dir = Path(config.llm.index_dir)
     if path:
@@ -92,12 +91,12 @@ def save_index(
 
 
 def delete_index(
-    path: Union[str, Path],
+    path: str | Path,
 ) -> bool:
     """Delete index
 
     Args:
-        path (Union[str, Path]): path to the index
+        path (str | Path): path to the index
 
     Returns:
         bool: ok. Return True if successful else False
@@ -113,7 +112,7 @@ def delete_index(
     return True
 
 
-def list_index() -> List[str]:
+def list_index() -> list[str]:
     persist_dir = Path(config.llm.index_dir)
     return [str(path.name) for path in persist_dir.glob("*") if path.is_dir()]
 
@@ -126,7 +125,7 @@ def query_index(
     return query_engine.query(query)
 
 
-def check_index_exists(path: Union[Path, str]) -> bool:
+def check_index_exists(path: Path | str) -> bool:
     persist_dir = Path(config.llm.index_dir)
     path = persist_dir / path
     return path.exists()

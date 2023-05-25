@@ -1,5 +1,3 @@
-from typing import List
-
 from db import db_helper
 from fastapi import APIRouter
 from pydantic import BaseModel
@@ -34,7 +32,7 @@ def query_email_thread(
 
 
 class IndexDocumentsBody(BaseModel):
-    documents: List[str]
+    documents: list[str]
     query: str
 
 
@@ -58,7 +56,7 @@ def index_documents(
 
 class IndexCollectionBody(BaseModel):
     collection_id: str
-    documents: List[str]
+    documents: list[str]
 
 
 @router.post("/index_collection")

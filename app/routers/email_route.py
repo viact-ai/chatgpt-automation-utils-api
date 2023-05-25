@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 from db import db_helper
 from fastapi import APIRouter
@@ -96,7 +96,7 @@ def add_revision(
 
 
 class ScheduleEmailBody(BaseModel):
-    recipients: List[str]
+    recipients: list[str]
     subject: str
     content: str
     scheduled_time: datetime
@@ -127,7 +127,7 @@ def schedule_email(
 
 class IndexThreadBody(BaseModel):
     thread_id: str
-    messages: List[str]
+    messages: list[str]
 
 
 @router.post("/index_thread")
@@ -215,7 +215,7 @@ def delete_index_email_thread(
 
 
 class FollowUpEmailBody(BaseModel):
-    history: List[HistoryMessage]
+    history: list[HistoryMessage]
     user_input: str
     instruction: Optional[str] = None
 

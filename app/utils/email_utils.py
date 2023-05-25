@@ -2,7 +2,7 @@ import asyncio
 import smtplib
 from datetime import datetime
 from email.message import EmailMessage
-from typing import List, Literal, TypedDict
+from typing import Literal, TypedDict
 
 from db import db_helper
 from langchain import LLMChain, OpenAI, PromptTemplate
@@ -19,7 +19,7 @@ client = db_helper.get_client()
 
 
 def send_email(
-    recipients: List[str],
+    recipients: list[str],
     subject: str,
     content: str,
     cc: str = None,
@@ -30,7 +30,7 @@ def send_email(
     """Send email to recipients
 
     Args:
-        recipients (List[str]): list of email addresses
+        recipients (list[str]): list of email addresses
         subject (str): subject of the email
         content (str): body/content of the email
         cc (str): cc email address. Default to None
@@ -85,7 +85,7 @@ def send_email(
 
 
 def schedule_email(
-    recipients: List[str],
+    recipients: list[str],
     subject: str,
     content: str,
     scheduled_time: datetime,
@@ -162,7 +162,7 @@ class HistoryMessage(TypedDict):
 
 def write_follow_up_email(
     user_input: str,
-    history: List[HistoryMessage],
+    history: list[HistoryMessage],
     instruction: str = None,
 ) -> str:
     if not instruction:

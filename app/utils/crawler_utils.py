@@ -1,7 +1,7 @@
-from typing import List, TypedDict, Union
+from typing import Any, Coroutine, TypedDict
 
-import requests
 from bs4 import BeautifulSoup
+from utils.http_helper import async_request
 from utils.logger_utils import get_logger
 
 logger = get_logger()
@@ -13,10 +13,10 @@ class SearchItemResult(TypedDict):
     description: str
 
 
-def crawl_search_google(
+async def crawl_search_google(
     search_term: str,
-    limit=10,
-) -> List[SearchItemResult]:
+    limit=5,
+) -> list[SearchItemResult]:
     """Crawl result from google search
 
     Args:
@@ -25,7 +25,7 @@ def crawl_search_google(
         result. Defaults to 10.
 
     Returns:
-        List[SearchItemResult]: List of result
+        list[SearchItemResult]: List of result
 
         SearchItemResult: Dict of result item
         {
@@ -59,14 +59,15 @@ def crawl_search_google(
     website_description_data = []
     while True:
         page_num += 1
-        print(f"page: {page_num}")
+        logger.info(f"page: {page_num}")
 
-        html = requests.get(
+        html = await async_request(
             "https://www.google.com/search",
             params=params,
             headers=headers,
-            timeout=30,
+            timout=30,
         )
+
         soup = BeautifulSoup(html.text, "lxml")
 
         for result in soup.select(".tF2Cxc"):
@@ -75,7 +76,7 @@ def crawl_search_google(
             try:
                 description = result.select_one(".VwiC3b").text
             except Exception as err:
-                print(err)
+                logger.exception(err)
                 description = None
 
             website_description_data.append(
@@ -99,7 +100,9 @@ class WebContentResult(TypedDict):
     text_content: str
 
 
-def crawl_website(link: str) -> Union[WebContentResult, None]:
+async def crawl_website(
+    link: str,
+) -> Coroutine[Any, Any, WebContentResult | None]:
     """Crawl website content
 
     Args:
@@ -117,7 +120,7 @@ def crawl_website(link: str) -> Union[WebContentResult, None]:
     """
 
     try:
-        response = requests.get(link)
+        response = await async_request(link, timout=30)
     except Exception as err:
         logger.exception(err)
         return
