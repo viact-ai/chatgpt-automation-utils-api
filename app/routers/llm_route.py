@@ -83,7 +83,6 @@ def add_document_to_collection(
     docs = langchain_utils.txts2docs(body.documents)
     index = langchain_utils.load_vectorstore(path=body.collection_id)
     index = langchain_utils.add_docs_to_vectorstore(docs=docs, db=index)
-    index.persist()
 
     return {
         "status": "success",

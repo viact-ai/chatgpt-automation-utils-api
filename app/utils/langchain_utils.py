@@ -117,6 +117,7 @@ def add_docs_to_vectorstore(
     db: Chroma,
 ) -> Chroma:
     added_indexes = db.add_documents(docs)
+    db.persist()
     logger.info("Added %d documents to vectorstore" % len(added_indexes))
     return db
 
