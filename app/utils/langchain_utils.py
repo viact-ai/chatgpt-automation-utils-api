@@ -1,3 +1,4 @@
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -100,9 +101,8 @@ def delete_vectorstore(
     if not path.exists():
         return False
 
-    for file in path.glob("*"):
-        file.unlink(missing_ok=True)
-    path.rmdir()
+    shutil.rmtree(path)
+
     return True
 
 
