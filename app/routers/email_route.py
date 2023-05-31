@@ -4,7 +4,7 @@ from typing import Optional
 from db import db_helper
 from fastapi import APIRouter
 from pydantic import BaseModel
-from utils import email_utils, llm_utils
+from utils import email_utils, llama_utils
 from utils.config_utils import get_config
 from utils.email_utils import HistoryMessage
 
@@ -41,15 +41,15 @@ def query_email_thread(
     thread_id: str,
     q: str,
 ):
-    if not llm_utils.check_index_exists(thread_id):
+    if not llama_utils.check_index_exists(thread_id):
         return {
             "status": "failed",
             "message": "index does not exists",
         }
 
-    index = llm_utils.load_index(path=thread_id)
+    index = llama_utils.load_index(path=thread_id)
 
-    result = llm_utils.query_index(
+    result = llama_utils.query_index(
         index,
         q,
     )
@@ -61,7 +61,7 @@ def query_email_thread(
 
 @router.get("/index_thread")
 def list_thread_index():
-    index_list = llm_utils.list_index()
+    index_list = llama_utils.list_index()
     return {
         "status": "success",
         "index_list": index_list,
@@ -134,17 +134,17 @@ class IndexThreadBody(BaseModel):
 def index_email_thread(
     body: IndexThreadBody,
 ):
-    if llm_utils.check_index_exists(body.thread_id):
+    if llama_utils.check_index_exists(body.thread_id):
         return {
             "status": "failed",
             "message": "index already exists",
         }
 
-    docs = llm_utils.txts2docs(body.messages)
-    nodes = llm_utils.docs2nodes(docs)
-    index = llm_utils.nodes2index(nodes)
+    docs = llama_utils.txts2docs(body.messages)
+    nodes = llama_utils.docs2nodes(docs)
+    index = llama_utils.nodes2index(nodes)
 
-    llm_utils.save_index(index=index, path=body.thread_id)
+    llama_utils.save_index(index=index, path=body.thread_id)
     return {
         "status": "success",
     }
@@ -154,18 +154,18 @@ def index_email_thread(
 def add_messages_to_thread(
     body: IndexThreadBody,
 ):
-    if not llm_utils.check_index_exists(body.thread_id):
+    if not llama_utils.check_index_exists(body.thread_id):
         return {
             "status": "failed",
             "message": "index does not exists",
         }
 
-    docs = llm_utils.txts2docs(body.messages)
-    nodes = llm_utils.docs2nodes(docs)
+    docs = llama_utils.txts2docs(body.messages)
+    nodes = llama_utils.docs2nodes(docs)
 
-    index = llm_utils.load_index(path=body.thread_id)
+    index = llama_utils.load_index(path=body.thread_id)
     index.insert_nodes(nodes)
-    llm_utils.save_index(index=index, path=body.thread_id)
+    llama_utils.save_index(index=index, path=body.thread_id)
 
     return {
         "status": "success",
@@ -176,17 +176,17 @@ def add_messages_to_thread(
 def update_index_email_thread(
     body: IndexThreadBody,
 ):
-    if not llm_utils.check_index_exists(body.thread_id):
+    if not llama_utils.check_index_exists(body.thread_id):
         return {
             "status": "failed",
             "message": "index does not exists",
         }
 
-    docs = llm_utils.txts2docs(body.messages)
-    nodes = llm_utils.docs2nodes(docs)
-    index = llm_utils.nodes2index(nodes)
+    docs = llama_utils.txts2docs(body.messages)
+    nodes = llama_utils.docs2nodes(docs)
+    index = llama_utils.nodes2index(nodes)
 
-    llm_utils.save_index(index=index, path=body.thread_id)
+    llama_utils.save_index(index=index, path=body.thread_id)
     return {
         "status": "success",
     }
@@ -196,13 +196,13 @@ def update_index_email_thread(
 def delete_index_email_thread(
     thread_id: str,
 ):
-    if not llm_utils.check_index_exists(thread_id):
+    if not llama_utils.check_index_exists(thread_id):
         return {
             "status": "failed",
             "message": "index does not exists",
         }
 
-    ok = llm_utils.delete_index(path=thread_id)
+    ok = llama_utils.delete_index(path=thread_id)
     if not ok:
         return {
             "status": "failed",

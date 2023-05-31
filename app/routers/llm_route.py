@@ -1,7 +1,7 @@
 from db import db_helper
 from fastapi import APIRouter
 from pydantic import BaseModel
-from utils import llm_utils
+from utils import langchain_utils
 
 router = APIRouter()
 
@@ -13,18 +13,15 @@ def query_email_thread(
     collection_id: str,
     q: str,
 ):
-    if not llm_utils.check_index_exists(collection_id):
+    if not langchain_utils.check_vectorstore_exists(collection_id):
         return {
             "status": "failed",
             "message": "index does not exists",
         }
 
-    index = llm_utils.load_index(path=collection_id)
+    index = langchain_utils.load_vectorstore(path=collection_id)
 
-    result = llm_utils.query_index(
-        index,
-        q,
-    )
+    result = langchain_utils.query_vectorstore(index, q)
     return {
         "status": "success",
         "result": result,
@@ -40,14 +37,10 @@ class IndexDocumentsBody(BaseModel):
 def index_documents(
     body: IndexDocumentsBody,
 ):
-    docs = llm_utils.txts2docs(body.documents)
-    nodes = llm_utils.docs2nodes(docs)
-    index = llm_utils.nodes2index(nodes)
+    docs = langchain_utils.txts2docs(body.documents)
+    index = langchain_utils.create_vectorstore_index(docs)
 
-    result = llm_utils.query_index(
-        index,
-        body.query,
-    )
+    result = langchain_utils.query_vectorstore(index, body.query)
     return {
         "status": "success",
         "result": result,
@@ -63,17 +56,15 @@ class IndexCollectionBody(BaseModel):
 def index_collection(
     body: IndexCollectionBody,
 ):
-    if llm_utils.check_index_exists(body.collection_id):
+    if langchain_utils.check_vectorstore_exists(body.collection_id):
         return {
             "status": "failed",
             "message": "index already exists",
         }
 
-    docs = llm_utils.txts2docs(body.documents)
-    nodes = llm_utils.docs2nodes(docs)
-    index = llm_utils.nodes2index(nodes)
+    docs = langchain_utils.txts2docs(body.documents)
+    langchain_utils.create_vectorstore_index(docs, path=body.collection_id)
 
-    llm_utils.save_index(index=index, path=body.collection_id)
     return {
         "status": "success",
     }
@@ -83,18 +74,17 @@ def index_collection(
 def add_document_to_collection(
     body: IndexCollectionBody,
 ):
-    if not llm_utils.check_index_exists(body.collection_id):
+    if not langchain_utils.check_vectorstore_exists(body.collection_id):
         return {
             "status": "failed",
             "message": "index does not exists",
         }
 
-    docs = llm_utils.txts2docs(body.documents)
-    nodes = llm_utils.docs2nodes(docs)
+    docs = langchain_utils.txts2docs(body.documents)
+    index = langchain_utils.load_vectorstore(path=body.collection_id)
+    index = langchain_utils.add_docs_to_vectorstore(docs=docs, db=index)
 
-    index = llm_utils.load_index(path=body.collection_id)
-    index.insert_nodes(nodes)
-    llm_utils.save_index(index=index, path=body.collection_id)
+    langchain_utils.persist_vectorstore(db=index, path=body.collection_id)
 
     return {
         "status": "success",
@@ -105,13 +95,13 @@ def add_document_to_collection(
 def delete_index_email_thread(
     collection_id: str,
 ):
-    if not llm_utils.check_index_exists(collection_id):
+    if not langchain_utils.check_vectorstore_exists(collection_id):
         return {
             "status": "failed",
             "message": "index does not exists",
         }
 
-    ok = llm_utils.delete_index(path=collection_id)
+    ok = langchain_utils.delete_vectorstore(path=collection_id)
     if not ok:
         return {
             "status": "failed",

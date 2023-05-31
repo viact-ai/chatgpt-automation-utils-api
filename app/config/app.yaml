@@ -4,13 +4,17 @@ app:
   logdir: ./log
 
 llm:
-  model_name: gpt-3.5-turbo-0301
-  temperature: 0.2
+  model_name: gpt-3.5-turbo
+  temperature: 0.0
   max_input_size: 3900
   num_output: 256
   max_chunk_overlap: 40
 
-  index_dir: ./llm_storage
+  llama_index:
+    persist_dir: ./llm_storage/llama_index
+  langchain:
+    persist_dir: ./llm_storage/langchain
+    qa_chain_type: stuff # stuff, map_reduce, refine, map_rerank
 
 db:
   host: ${env:DB_HOST}

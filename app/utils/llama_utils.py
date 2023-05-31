@@ -15,9 +15,11 @@ from llama_index.data_structs import Node
 from llama_index.node_parser import SimpleNodeParser
 from llama_index.response.schema import RESPONSE_TYPE
 from utils.config_utils import get_config
+from utils.logger_utils import get_logger
 
 config = get_config()
 
+logger = get_logger()
 
 GPT_INDEX_TYPE = GPTListIndex | GPTVectorStoreIndex
 
@@ -63,7 +65,7 @@ def nodes2index(
 def load_index(
     path: str | Path = None,
 ) -> GPT_INDEX_TYPE:
-    persist_dir = Path(config.llm.index_dir)
+    persist_dir = Path(config.llm.llama_index.persist_dir)
     if path:
         path = persist_dir / path
 
@@ -80,7 +82,7 @@ def save_index(
     index: GPT_INDEX_TYPE,
     path: str | Path = None,
 ) -> None:
-    persist_dir = Path(config.llm.index_dir)
+    persist_dir = Path(config.llm.llama_index.persist_dir)
     if path:
         path = persist_dir / path
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -101,7 +103,7 @@ def delete_index(
     Returns:
         bool: ok. Return True if successful else False
     """
-    persist_dir = Path(config.llm.index_dir)
+    persist_dir = Path(config.llm.llama_index.persist_dir)
     path = persist_dir / path
     if not path.exists():
         return False
@@ -113,7 +115,7 @@ def delete_index(
 
 
 def list_index() -> list[str]:
-    persist_dir = Path(config.llm.index_dir)
+    persist_dir = Path(config.llm.llama_index.persist_dir)
     return [str(path.name) for path in persist_dir.glob("*") if path.is_dir()]
 
 
@@ -122,10 +124,10 @@ def query_index(
     query: str,
 ) -> RESPONSE_TYPE:
     query_engine = index.as_query_engine()
-    return query_engine.query(query)
+    return query_engine.query(query).response
 
 
 def check_index_exists(path: Path | str) -> bool:
-    persist_dir = Path(config.llm.index_dir)
+    persist_dir = Path(config.llm.llama_index.persist_dir)
     path = persist_dir / path
     return path.exists()
