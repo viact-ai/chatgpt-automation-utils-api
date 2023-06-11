@@ -1,3 +1,6 @@
+*credential*
+*token*
+
 .chroma/
 app/llm_storage
 app/log/
