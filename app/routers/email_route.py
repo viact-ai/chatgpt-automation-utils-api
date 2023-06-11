@@ -2,11 +2,14 @@ from datetime import datetime
 from typing import Optional
 
 from db import db_helper
-from fastapi import APIRouter
+from depends.auth_dep import verify_credentials
+from fastapi import APIRouter, Depends
+from google.oauth2.credentials import Credentials
 from pydantic import BaseModel
 from utils import email_utils, langchain_utils
 from utils.config_utils import get_config
 from utils.email_utils import HistoryMessage
+from utils.googleapi_utils import fetch_gmail_messages
 
 router = APIRouter()
 
@@ -223,3 +226,31 @@ def follow_up_email(
         "status": "success",
         "result": result,
     }
+
+
+@router.get(
+    "/fetch_gmail_messages",
+)
+async def fetch_gmail_messages_route(
+    q: str = None,
+    offset: int = 0,
+    limit: int = 10,
+    plain_text: bool = False,
+    include_spam_trash: bool = False,
+    creds: Credentials = Depends(verify_credentials),
+):
+    messages = await fetch_gmail_messages(
+        creds,
+        query=q,
+        offset=offset,
+        limit=limit,
+        plain_text=plain_text,
+        include_spam_trash=include_spam_trash,
+    )
+
+    if not messages:
+        return {
+            "error": "Error when fetching messages",
+        }
+
+    return {"status": "success", "messages": messages}

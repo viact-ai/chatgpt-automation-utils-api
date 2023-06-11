@@ -3,6 +3,26 @@ app:
   port: 8899
   logdir: ./log
 
+  cors_origins:
+    - '127.0.0.1:3000'
+    - '127.0.0.1:3001'
+
+  frontend_url: 'http://localhost:3000'
+
+googleapi:
+  auth_callback_url: 'http://localhost:3000/api/google_auth_callback'
+
+  scopes:
+    - 'https://www.googleapis.com/auth/gmail.readonly'
+    - 'https://www.googleapis.com/auth/gmail.send'
+    - 'https://www.googleapis.com/auth/userinfo.profile'
+    - 'https://www.googleapis.com/auth/userinfo.email'
+    - 'openid'
+
+  client_secrets_file: 'credentials.json'
+  client_id: ${env:GOOGLE_API_CLIENT_ID}
+  client_secret: ${env:GOOGLE_API_CLIENT_SECRET}
+
 llm:
   model_name: gpt-3.5-turbo
   temperature: 0.0
