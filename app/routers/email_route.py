@@ -6,6 +6,7 @@ from depends.auth_dep import verify_credentials
 from fastapi import APIRouter, Depends
 from google.oauth2.credentials import Credentials
 from pydantic import BaseModel
+from schemas.response import APIResponse
 from utils import email_utils, langchain_utils
 from utils.config_utils import get_config
 from utils.email_utils import HistoryMessage
@@ -25,7 +26,7 @@ class EmailPromptRevisionBody(BaseModel):
     gpt_result: str
 
 
-@router.get("/gpt_revision")
+@router.get("/gpt_revision", response_model=APIResponse)
 def get_gpt_revision(
     email_id: str,
 ):
@@ -34,19 +35,18 @@ def get_gpt_revision(
     documents = collection.find({"email_id": email_id})
     documents = [db_helper.jsonify_doc(doc) for doc in documents]
     return {
-        "status": "success",
-        "revisions": documents,
+        "data": documents,
     }
 
 
-@router.get("/query_thread/{thread_id}")
+@router.get("/query_thread/{thread_id}", response_model=APIResponse)
 def query_email_thread(
     thread_id: str,
     q: str,
 ):
     if not langchain_utils.check_vectorstore_exists(thread_id):
         return {
-            "status": "failed",
+            "error": True,
             "message": "index does not exists",
         }
 
@@ -54,21 +54,19 @@ def query_email_thread(
 
     result = langchain_utils.query_vectorstore(index, q)
     return {
-        "status": "success",
-        "result": result,
+        "data": result,
     }
 
 
-@router.get("/index_thread")
+@router.get("/index_thread", response_model=APIResponse)
 def list_thread_index():
     index_list = langchain_utils.list_vectorstore()
     return {
-        "status": "success",
-        "index_list": index_list,
+        "data": index_list,
     }
 
 
-@router.post("/gpt_revision")
+@router.post("/gpt_revision", response_model=APIResponse)
 def add_revision(
     body: EmailPromptRevisionBody,
 ):
@@ -84,14 +82,13 @@ def add_revision(
     if existing_item:
         if existing_item["gpt_result"] == body.gpt_result:
             return {
-                "status": "failed",
+                "error": True,
                 "message": "revision already exists",
             }
 
     inserted = collection.insert_one(body.dict())
     return {
-        "status": "success",
-        "inserted_id": str(inserted.inserted_id),
+        "data": str(inserted.inserted_id),
     }
 
 
@@ -106,7 +103,7 @@ class ScheduleEmailBody(BaseModel):
     bcc: str = None
 
 
-@router.post("/schedule")
+@router.post("/schedule", response_model=APIResponse)
 def schedule_email(
     body: ScheduleEmailBody,
 ):
@@ -121,7 +118,7 @@ def schedule_email(
         bcc=body.bcc,
     )
     return {
-        "status": "success",
+        "error": False,
     }
 
 
@@ -130,13 +127,13 @@ class IndexThreadBody(BaseModel):
     messages: list[str]
 
 
-@router.post("/index_thread")
+@router.post("/index_thread", response_model=APIResponse)
 def index_email_thread(
     body: IndexThreadBody,
 ):
     if langchain_utils.check_vectorstore_exists(body.thread_id):
         return {
-            "status": "failed",
+            "error": True,
             "message": "index already exists",
         }
 
@@ -144,17 +141,17 @@ def index_email_thread(
     langchain_utils.create_vectorstore_index(docs, path=body.thread_id)
 
     return {
-        "status": "success",
+        "error": False,
     }
 
 
-@router.post("/index_thread/messages")
+@router.post("/index_thread/messages", response_model=APIResponse)
 def add_messages_to_thread(
     body: IndexThreadBody,
 ):
     if not langchain_utils.check_vectorstore_exists(body.thread_id):
         return {
-            "status": "failed",
+            "error": False,
             "message": "index does not exists",
         }
 
@@ -163,17 +160,17 @@ def add_messages_to_thread(
     langchain_utils.add_docs_to_vectorstore(docs, index)
 
     return {
-        "status": "success",
+        "error": False,
     }
 
 
-@router.put("/index_thread")
+@router.put("/index_thread", response_model=APIResponse)
 def update_index_email_thread(
     body: IndexThreadBody,
 ):
     if not langchain_utils.check_vectorstore_exists(body.thread_id):
         return {
-            "status": "failed",
+            "error": True,
             "message": "index does not exists",
         }
 
@@ -181,29 +178,29 @@ def update_index_email_thread(
     langchain_utils.create_vectorstore_index(docs, path=body.thread_id)
 
     return {
-        "status": "success",
+        "error": False,
     }
 
 
-@router.delete("/index_thread/{thread_id}")
+@router.delete("/index_thread/{thread_id}", response_model=APIResponse)
 def delete_index_email_thread(
     thread_id: str,
 ):
     if not langchain_utils.check_vectorstore_exists(thread_id):
         return {
-            "status": "failed",
+            "error": True,
             "message": "index does not exists",
         }
 
     ok = langchain_utils.delete_vectorstore(path=thread_id)
     if not ok:
         return {
-            "status": "failed",
+            "error": True,
             "message": "error when delete index",
         }
 
     return {
-        "status": "success",
+        "error": False,
     }
 
 
@@ -213,7 +210,7 @@ class FollowUpEmailBody(BaseModel):
     instruction: Optional[str] = None
 
 
-@router.post("/follow_up")
+@router.post("/follow_up", response_model=APIResponse)
 def follow_up_email(
     body: FollowUpEmailBody,
 ):
@@ -223,14 +220,11 @@ def follow_up_email(
         instruction=body.instruction,
     )
     return {
-        "status": "success",
-        "result": result,
+        "data": result,
     }
 
 
-@router.get(
-    "/fetch_gmail_messages",
-)
+@router.get("/fetch_gmail_messages", response_model=APIResponse)
 async def fetch_gmail_messages_route(
     q: str = None,
     offset: int = 0,
@@ -250,7 +244,10 @@ async def fetch_gmail_messages_route(
 
     if not messages:
         return {
-            "error": "Error when fetching messages",
+            "error": True,
+            "message": "Error when fetching messages",
         }
 
-    return {"status": "success", "messages": messages}
+    return {
+        "data": messages,
+    }

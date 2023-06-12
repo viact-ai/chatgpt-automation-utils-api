@@ -1,12 +1,13 @@
 import asyncio
 
 from fastapi import APIRouter
+from schemas.response import APIResponse
 from utils import crawler_utils
 
 router = APIRouter()
 
 
-@router.get("/google_result")
+@router.get("/google_result", response_model=APIResponse)
 async def crawl_google_result(
     q: str,
     limit: int = 10,
@@ -33,13 +34,18 @@ async def crawl_google_result(
                 r["text_content"] = content
 
         result.append(r)
-    return result
+
+    return {
+        "data": result,
+    }
 
 
-@router.get("/website")
+@router.get("/website", response_model=APIResponse)
 def crawl_website_content(
     link: str,
 ):
     content = crawler_utils.crawl_website(link)
 
-    return content
+    return {
+        "data": content,
+    }

@@ -4,13 +4,12 @@ app:
   logdir: ./log
 
   cors_origins:
-    - '127.0.0.1:3000'
-    - '127.0.0.1:3001'
+    - 'http://127.0.0.1:3000'
 
-  frontend_url: 'http://localhost:3000'
+  frontend_url: 'http://127.0.0.1:3000'
 
 googleapi:
-  auth_callback_url: 'http://localhost:3000/api/google_auth_callback'
+  auth_callback_url: 'http://127.0.0.1:3000/api/google_auth_callback'
 
   scopes:
     - 'https://www.googleapis.com/auth/gmail.readonly'

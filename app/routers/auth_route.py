@@ -1,8 +1,10 @@
 from typing import Annotated, Optional
+from urllib.parse import unquote
 
 from fastapi import APIRouter, Cookie, HTTPException, Response
 from fastapi.responses import JSONResponse, RedirectResponse
 from google.auth.transport.requests import Request
+from schemas.response import APIResponse
 from utils.auth_utils import (
     creds_from_tokens,
     get_google_auth_flow,
@@ -16,13 +18,16 @@ router = APIRouter()
 config = get_config()
 
 
-@router.get("/sign_in_with_google")
+@router.get("/sign_in_with_google", response_model=APIResponse)
 def sign_in_with_google(
     response: Response,
     token: Annotated[str | None, Cookie()] = None,
     refresh_token: Annotated[str | None, Cookie()] = None,
     expiry: Annotated[str | None, Cookie()] = None,
 ):
+    if expiry:
+        expiry = unquote(expiry)
+
     if token and refresh_token and expiry:
         # Request send with token attached in cookies
         creds = creds_from_tokens(token, refresh_token, expiry)
@@ -49,22 +54,33 @@ def sign_in_with_google(
         flow = get_google_auth_flow()
         auth_url = get_google_auth_url(flow)
 
-        return RedirectResponse(url=auth_url)
+        return {
+            "data": {
+                "auth_url": auth_url,
+            }
+        }
 
     # Request sent without token attached in cookies
     flow = get_google_auth_flow()
     auth_url = get_google_auth_url(flow)
 
-    return RedirectResponse(url=auth_url)
+    return {
+        "data": {
+            "auth_url": auth_url,
+        },
+    }
 
 
-@router.get("/google_profile")
+@router.get("/google_profile", response_model=APIResponse)
 def google_user_profile(
     response: Response,
     token: Annotated[str | None, Cookie()] = None,
     refresh_token: Annotated[str | None, Cookie()] = None,
     expiry: Annotated[str | None, Cookie()] = None,
 ):
+    if expiry:
+        expiry = unquote(expiry)
+
     if not (token and refresh_token and expiry):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
@@ -88,8 +104,7 @@ def google_user_profile(
 
         return JSONResponse(
             content={
-                "status": "success",
-                "profile": profile,
+                "data": profile,
             },
             headers=response.headers,
         )
@@ -102,12 +117,11 @@ def google_user_profile(
         )
 
     return {
-        "status": "success",
-        "profile": profile,
+        "data": profile,
     }
 
 
-@router.get("/google_auth_callback")
+@router.get("/google_auth_callback", response_model=APIResponse)
 def callback(
     response: Response,
     state: str,
@@ -138,7 +152,6 @@ def callback(
     response.set_cookie(key="expiry", value=creds.expiry.isoformat())
 
     return {
-        "status": "success",
         "data": {
             "token": creds.token,
             "refresh_token": creds.refresh_token,
@@ -154,6 +167,9 @@ def validate(
     refresh_token: Annotated[str | None, Cookie()] = None,
     expiry: Annotated[str | None, Cookie()] = None,
 ):
+    if expiry:
+        expiry = unquote(expiry)
+
     if not (token and refresh_token and expiry):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
@@ -180,7 +196,7 @@ def validate(
     raise HTTPException(status_code=401, detail="Unauthorized")
 
 
-@router.get("/sign_out")
+@router.get("/sign_out", response_model=APIResponse)
 def logout(response: Response):
     response.delete_cookie(key="token")
     response.delete_cookie(key="refresh_token")
@@ -188,8 +204,9 @@ def logout(response: Response):
 
     return JSONResponse(
         content={
-            "status": "success",
-            "redirect_url": config.app.frontend_url,
+            "data": {
+                "redirect_url": config.app.frontend_url,
+            },
         },
         headers=response.headers,
     )

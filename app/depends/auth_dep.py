@@ -1,4 +1,5 @@
 from typing import Annotated
+from urllib.parse import unquote
 
 from fastapi import Cookie, HTTPException
 from google.auth.transport.requests import Request
@@ -11,6 +12,9 @@ async def verify_credentials(
     refresh_token: Annotated[str | None, Cookie()] = None,
     expiry: Annotated[str | None, Cookie()] = None,
 ) -> Credentials | None:
+    if expiry:
+        expiry = unquote(expiry)
+
     if not (token and refresh_token and expiry):
         raise HTTPException(status_code=401, detail="Unauthorized")
 

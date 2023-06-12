@@ -1,3 +1,4 @@
+import asyncio
 from os import getenv
 
 import dotenv
@@ -11,6 +12,7 @@ from routers import (
     general_utils_route,
     llm_route,
 )
+from utils import email_utils
 from utils.config_utils import get_config
 
 dotenv.load_dotenv()
@@ -20,7 +22,6 @@ assert getenv("OPENAI_API_KEY") is not None, "OPENAI_API_KEY not set in .env"
 config = get_config()
 
 app = FastAPI()
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -53,9 +54,9 @@ app.include_router(
 )
 
 
-# @app.on_event("startup")
-# async def startup_event():
-#     asyncio.create_task(email_utils.send_scheduled_emails_loop())
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(email_utils.send_scheduled_emails_loop())
 
 
 @app.get("/")
