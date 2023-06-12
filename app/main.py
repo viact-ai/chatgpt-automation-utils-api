@@ -23,13 +23,14 @@ config = get_config()
 
 app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=config.app.cors_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+if getenv("PYTHON_ENV") != "production":
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=config.app.cors_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 app.include_router(
