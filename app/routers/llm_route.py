@@ -1,12 +1,30 @@
+from typing import Optional
+
 from db import db_helper
 from fastapi import APIRouter
 from pydantic import BaseModel
 from schemas.response import APIResponse
 from utils import langchain_utils
+from utils.llama_utils import run_chatgpt
 
 router = APIRouter()
 
 client = db_helper.get_client()
+
+
+class RunChatGPTBody(BaseModel):
+    prompt: str
+    instruction: Optional[str] = None
+
+
+@router.post("/chatgpt", response_model=APIResponse)
+def run_chatgpt_route(
+    body: RunChatGPTBody,
+):
+    res = run_chatgpt(body.prompt, body.instruction)
+    return {
+        "data": res,
+    }
 
 
 @router.get("/index_collection/{collection_id}", response_model=APIResponse)

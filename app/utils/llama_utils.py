@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import openai
 from langchain import OpenAI
 from llama_index import (
     Document,
@@ -131,3 +132,18 @@ def check_index_exists(path: Path | str) -> bool:
     persist_dir = Path(config.llm.llama_index.persist_dir)
     path = persist_dir / path
     return path.exists()
+
+
+def run_chatgpt(prompt: str, instruction: str = None) -> str:
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {
+                "role": "system",
+                "content": instruction or "You are a helpful assistant.",
+            },
+            {"role": "user", "content": prompt},
+        ],
+        temperature=config.llm.temperature,
+    )
+    return response.choices[0].message.content
