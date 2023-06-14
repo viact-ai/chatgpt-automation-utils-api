@@ -1,3 +1,4 @@
+from os import getenv
 from pathlib import Path
 
 import openai
@@ -135,6 +136,8 @@ def check_index_exists(path: Path | str) -> bool:
 
 
 def run_chatgpt(prompt: str, instruction: str = None) -> str:
+    openai.api_key = getenv("OPENAI_API_KEY")
+
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
