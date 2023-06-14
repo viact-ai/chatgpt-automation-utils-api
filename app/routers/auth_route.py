@@ -42,8 +42,14 @@ def sign_in_with_google(
             # Token is expired and refresh token is available
             creds.refresh(Request())
 
-            response.set_cookie("token", creds.token)
-            response.set_cookie("expiry", creds.expiry.isoformat())
+            response.set_cookie(
+                "token", creds.token, domain=config.app.cookies_domain
+            )
+            response.set_cookie(
+                "expiry",
+                creds.expiry.isoformat(),
+                domain=config.app.cookies_domain,
+            )
 
             return JSONResponse(
                 content={},
@@ -99,8 +105,14 @@ def google_user_profile(
                 detail="Failed to get user profile from Google",
             )
 
-        response.set_cookie("token", creds.token)
-        response.set_cookie("expiry", creds.expiry.isoformat())
+        response.set_cookie(
+            "token", creds.token, domain=config.app.cookies_domain
+        )
+        response.set_cookie(
+            "expiry",
+            creds.expiry.isoformat(),
+            domain=config.app.cookies_domain,
+        )
 
         return JSONResponse(
             content={
@@ -147,9 +159,19 @@ def callback(
 
     creds = flow.credentials
 
-    response.set_cookie(key="token", value=creds.token)
-    response.set_cookie(key="refresh_token", value=creds.refresh_token)
-    response.set_cookie(key="expiry", value=creds.expiry.isoformat())
+    response.set_cookie(
+        key="token", value=creds.token, domain=config.app.cookies_domain
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=creds.refresh_token,
+        domain=config.app.cookies_domain,
+    )
+    response.set_cookie(
+        key="expiry",
+        value=creds.expiry.isoformat(),
+        domain=config.app.cookies_domain,
+    )
 
     return {
         "data": {
@@ -184,8 +206,14 @@ def validate(
     if creds.expired and creds.refresh_token:
         creds.refresh(Request())
 
-        response.set_cookie("token", creds.token)
-        response.set_cookie("expiry", creds.expiry.isoformat())
+        response.set_cookie(
+            "token", creds.token, domain=config.app.cookies_domain
+        )
+        response.set_cookie(
+            "expiry",
+            creds.expiry.isoformat(),
+            domain=config.app.cookies_domain,
+        )
 
         return Response(
             content=None,
