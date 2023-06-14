@@ -8,7 +8,7 @@ app:
 
   frontend_url: ${env:FRONTEND_URL}
 
-  cookies_domain: '*.viact.net'
+  cookies_domain: 'viact.net'
 
 googleapi:
   auth_callback_url: ${env:GOOGLE_AUTH_CALLBACK_URL}
