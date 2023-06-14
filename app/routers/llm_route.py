@@ -21,10 +21,16 @@ class RunChatGPTBody(BaseModel):
 def run_chatgpt_route(
     body: RunChatGPTBody,
 ):
-    res = run_chatgpt(body.prompt, body.instruction)
-    return {
-        "data": res,
-    }
+    try:
+        res = run_chatgpt(body.prompt, body.instruction)
+        return {
+            "data": res,
+        }
+    except Exception as e:
+        return {
+            "error": True,
+            "message": str(e),
+        }
 
 
 @router.get("/index_collection/{collection_id}", response_model=APIResponse)
