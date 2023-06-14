@@ -19,6 +19,7 @@ googleapi:
     - 'openid'
 
   client_secrets_file: 'credentials.json'
+  credentials_string: ${env:GOOGLE_API_CREDENTIALS}
   client_id: ${env:GOOGLE_API_CLIENT_ID}
   client_secret: ${env:GOOGLE_API_CLIENT_SECRET}
 

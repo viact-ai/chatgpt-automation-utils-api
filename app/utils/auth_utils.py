@@ -1,3 +1,7 @@
+import base64
+import json
+from pathlib import Path
+
 import requests
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -7,6 +11,15 @@ from utils.logger_utils import get_logger
 config = get_config()
 
 logger = get_logger()
+
+
+def read_credentials_JSON_from_env():
+    b64_str = config.googleapi.credentials_string
+    try:
+        return json.loads(base64.b64decode(b64_str).decode("utf-8"))
+    except Exception as err:
+        logger.exception(err)
+        return None
 
 
 def creds_from_tokens(
@@ -31,8 +44,18 @@ def creds_from_tokens(
 def get_google_auth_flow(
     redirect_uri: str = None,
 ) -> InstalledAppFlow:
+    creds_path = Path(config.googleapi.client_secrets_file)
+    if not creds_path.exists():
+        creds_data = read_credentials_JSON_from_env()
+        if creds_data is None:
+            raise Exception("No credentials file found")
+
+        with creds_path.open("w") as f:
+            json.dump(creds_data, f)
+            logger.info('Wrote credentials to "%s"', creds_path)
+
     return InstalledAppFlow.from_client_secrets_file(
-        client_secrets_file=config.googleapi.client_secrets_file,
+        client_secrets_file=str(creds_path),
         scopes=list(config.googleapi.scopes),
         redirect_uri=redirect_uri or config.googleapi.auth_callback_url,
     )
