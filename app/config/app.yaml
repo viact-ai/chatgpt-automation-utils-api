@@ -4,7 +4,7 @@ app:
   logdir: ./log
 
   cors_origins:
-    - ${env:FRONTEND_URL}
+    - '*'
 
   frontend_url: ${env:FRONTEND_URL}
 
