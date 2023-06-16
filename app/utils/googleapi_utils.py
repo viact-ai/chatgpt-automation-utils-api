@@ -1,4 +1,5 @@
 import base64
+import datetime
 import email
 
 from google.oauth2.credentials import Credentials
@@ -8,6 +9,18 @@ from schemas.email import Email
 from utils.logger_utils import get_logger
 
 logger = get_logger()
+
+
+def convert_to_datetime(date_string: str) -> datetime.datetime:
+    # Parse the date string to a tuple
+    parsed_date = email.utils.parsedate_tz(date_string)
+
+    # Convert the tuple to a datetime object
+    datetime_obj = datetime.datetime.fromtimestamp(
+        email.utils.mktime_tz(parsed_date)
+    )
+
+    return datetime_obj
 
 
 async def fetch_gmail_messages(
@@ -108,12 +121,19 @@ async def fetch_gmail_messages(
             # Decode subject header
             subject = email.header.decode_header(mime_msg["subject"])[0][0]
 
+            thread_id = message["threadId"]
+            label_ids = message["labelIds"]
+            _date = convert_to_datetime(mime_msg["date"])
+
             e = Email(
+                threadId=thread_id,
+                labelIds=label_ids,
                 messageId=mime_msg["message-id"],
                 subject=subject,
                 sendFrom=mime_msg["from"],
                 sendTo=mime_msg["to"],
                 body=body,
+                sendDate=_date.isoformat(),
             )
             emails.append(e)
 
