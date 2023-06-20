@@ -4,7 +4,6 @@ import email
 
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
 from schemas.email import Email
 from utils.logger_utils import get_logger
 
@@ -139,6 +138,6 @@ async def fetch_gmail_messages(
 
         return emails
 
-    except HttpError as err:
+    except Exception as err:
         logger.exception(err)
         return None

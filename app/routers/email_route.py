@@ -242,7 +242,7 @@ async def fetch_gmail_messages_route(
         include_spam_trash=include_spam_trash,
     )
 
-    if not messages:
+    if messages is None:
         return {
             "error": True,
             "message": "Error when fetching messages",
