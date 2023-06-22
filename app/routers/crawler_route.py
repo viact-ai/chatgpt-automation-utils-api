@@ -15,7 +15,9 @@ async def crawl_google_result(
 ):
     results = await crawler_utils.crawl_search_google(q, limit)
     if not get_content:
-        return results
+        return {
+            "data": results,
+        }
 
     responses = await asyncio.gather(
         *map(

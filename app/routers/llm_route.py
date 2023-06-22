@@ -66,7 +66,7 @@ def index_documents(
 
     result = langchain_utils.query_vectorstore(index, body.query)
     return {
-        "data": result,
+        "data": result["result"],
     }
 
 

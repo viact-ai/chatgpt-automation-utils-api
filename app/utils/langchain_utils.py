@@ -124,8 +124,8 @@ def add_docs_to_vectorstore(
 
 def get_retrieval_qa_chain(db: Chroma) -> RetrievalQA:
     llm = ChatOpenAI(
-        temperature=config.llm.temperature,
         model_name=config.llm.model_name,
+        temperature=config.llm.temperature,
     )
 
     combine_docs_chain = load_qa_chain(
@@ -134,7 +134,11 @@ def get_retrieval_qa_chain(db: Chroma) -> RetrievalQA:
     )
     qa = RetrievalQA(
         combine_documents_chain=combine_docs_chain,
-        retriever=db.as_retriever(),
+        retriever=db.as_retriever(
+            search_kwargs={
+                "k": 2,
+            },
+        ),
     )
     return qa
 
@@ -148,5 +152,9 @@ def query_vectorstore(
     # print(docs)
 
     qa = get_retrieval_qa_chain(db)
-    result = qa.run(query)
+    result = qa(
+        {
+            "query": query,
+        }
+    )
     return result
